@@ -2,6 +2,8 @@
 require('dotenv').config();
 const app = require('./app');
 const database = require('./config/database');
+const { configureGoogleAuth } = require('./config/auth');
+const routes = require('./routes');
 
 const PORT = process.env.PORT || 3000;
 
@@ -9,11 +11,20 @@ const PORT = process.env.PORT || 3000;
 async function startServer() {
   try {
     await database.connect();
+    const db = database.getDb();
+
+    // Configure Google OAuth passport strategy
+    const studentsCollection = db.collection('students');
+    configureGoogleAuth(studentsCollection);
+
+    // Mount auth routes after DB connection
+    routes.mountAuthRoutes(db);
 
     app.listen(PORT, () => {
       console.log(`\n🚀 VIT Course Registration System API`);
       console.log(`📡 Server running on http://localhost:${PORT}`);
       console.log(`📊 MongoDB Atlas connected`);
+      console.log(`🔐 Google OAuth configured`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`\n✨ Ready to accept requests!\n`);
     });

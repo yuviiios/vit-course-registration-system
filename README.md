@@ -4,12 +4,26 @@ Production-ready course registration system for VIT Vellore with modern layered 
 
 ## Features
 
-- Student management (register, profile, enrollments)
-- Course catalog with offerings
-- Enrollment system with slot conflict detection
-- Grade management & CGPA calculation
-- Faculty administration
-- Dashboard analytics
+- **Authentication & Authorization**
+  - JWT-based authentication (access + refresh tokens)
+  - Google OAuth 2.0 integration
+  - VIT college email restriction (`@vitstudent.ac.in`)
+  - Password hashing with bcrypt
+- **Student Management**
+  - Register with email/password or Google
+  - Profile management
+  - Enrollment tracking with CGPA
+- **Course Management**
+  - Course catalog with offerings
+  - Slot conflict detection
+  - Seat availability tracking
+- **Enrollment System**
+  - Enroll/drop courses
+  - Grade management & CGPA calculation
+- **Faculty & Analytics**
+  - Faculty administration
+  - Dashboard analytics
+  - Performance tracking
 
 ## Architecture
 
@@ -25,11 +39,16 @@ See `ARCHITECTURE.md` for detailed docs.
 
 ## Tech Stack
 
-- **Runtime**: Node.js
-- **Framework**: Express.js
-- **Database**: MongoDB Atlas
-- **Auth**: bcrypt (passwords)
+- **Runtime**: Node.js 16+
+- **Framework**: Express.js 4.18
+- **Database**: MongoDB Atlas (native driver)
+- **Authentication**: 
+  - JWT (jsonwebtoken)
+  - Google OAuth 2.0 (Passport.js)
+  - bcrypt password hashing
+- **Session Management**: express-session + cookie-parser
 - **Validation**: Custom middleware validators
+- **CORS**: Configurable origin support
 
 ## Setup
 
@@ -45,12 +64,35 @@ npm install
 
 ### Environment
 
-Create `.env`:
+Copy `.env.example` to `.env` and configure:
+
 ```env
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/vit_course_registration
+# Server
 PORT=3000
 NODE_ENV=development
+
+# Database
+MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/vit_course_registration
+
+# JWT (generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+JWT_SECRET=your-secret-key-min-32-chars
+JWT_EXPIRES_IN=7d
+JWT_REFRESH_SECRET=your-refresh-secret-key-min-32-chars
+JWT_REFRESH_EXPIRES_IN=30d
+
+# Google OAuth (see GOOGLE_OAUTH_SETUP.md)
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GOOGLE_CALLBACK_URL=http://localhost:3000/api/auth/google/callback
+
+# Session
+SESSION_SECRET=your-session-secret-min-32-chars
+
+# Frontend URL (for CORS and OAuth redirects)
+FRONTEND_URL=http://localhost:5173
 ```
+
+**⚠️ Important**: JWT secrets are already generated in `.env`. For Google OAuth, see `GOOGLE_OAUTH_SETUP.md`.
 
 ### Run
 
@@ -71,8 +113,28 @@ npm run seed
 
 ## API Endpoints
 
+### Authentication 🔐
+
+**Email/Password Auth**
+- `POST /api/auth/register` - Register with college email
+- `POST /api/auth/login` - Login with email/password
+- `POST /api/auth/refresh` - Refresh access token
+- `POST /api/auth/logout` - Logout (invalidate client token)
+
+**Google OAuth**
+- `GET /api/auth/google` - Initiate Google OAuth flow
+- `GET /api/auth/google/callback` - OAuth callback (automatic)
+
+**Protected Routes** (requires `Authorization: Bearer <token>`)
+- `GET /api/auth/me` - Get current user profile
+- `PUT /api/auth/me` - Update current user profile
+
+**Email Restriction**: Only `@vitstudent.ac.in` emails allowed for both registration and Google OAuth.
+
+**Testing**: Run `node testAuth.js` to test all auth endpoints.
+
 ### Students
-- `POST /api/students/register` - Register new student
+- `POST /api/students/register` - **DEPRECATED** - Use `/api/auth/register` instead
 - `GET /api/students` - List all students (paginated)
 - `GET /api/students/:id` - Get student details
 - `PUT /api/students/:id` - Update student
@@ -154,7 +216,30 @@ router.post('/create', validateInput, controller.create);
 
 ## Testing
 
-Unit tests (future):
+**Auth API Test Suite**:
+```bash
+npm run dev  # Start server first
+node testAuth.js  # Run auth tests
+```
+
+**Manual Testing**:
+```bash
+# Register
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"registrationNumber":"21BCE1234","name":"John Doe","email":"john@vitstudent.ac.in","password":"Pass123","branch":"CSE"}'
+
+# Login
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"john@vitstudent.ac.in","password":"Pass123"}'
+
+# Get Profile (use token from login response)
+curl -X GET http://localhost:3000/api/auth/me \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Unit tests** (future):
 ```bash
 npm test
 ```
@@ -179,25 +264,40 @@ Works with AWS, Heroku, Vercel, Railway
 
 ## Security
 
-- Password hashing (bcrypt)
-- Input validation middleware
-- CORS enabled
-- MongoDB injection prevention
+- **Authentication**: JWT with access + refresh tokens (7d + 30d expiry)
+- **Authorization**: Role-based access control (student role implemented)
+- **Password Security**: bcrypt hashing (cost factor 12)
+- **Email Restriction**: Only VIT college emails (`@vitstudent.ac.in`)
+- **OAuth Security**: Google OAuth 2.0 with domain validation
+- **Session Management**: Secure httpOnly cookies in production
+- **CORS**: Configurable origin whitelist
+- **Input Validation**: Custom middleware validators
+- **MongoDB Injection Prevention**: Native driver with proper escaping
+- **Token Storage**: Frontend should use httpOnly cookies or secure localStorage
 
 ## Future Enhancements
 
-- JWT authentication
-- Role-based access control
-- Redis caching
-- React frontend
+- ~~JWT authentication~~ ✅ **IMPLEMENTED**
+- ~~Google OAuth~~ ✅ **IMPLEMENTED**
+- Role-based access control (faculty/admin roles)
+- Redis caching for sessions and stats
+- React frontend with TailwindCSS
 - GraphQL support
-- WebSocket notifications
+- WebSocket real-time notifications
+- Email verification and password reset
+- Rate limiting and API throttling
+- Swagger/OpenAPI documentation
+- Unit and integration tests (Jest + Supertest)
+- Docker containerization
+- CI/CD pipeline (GitHub Actions)
 
 ## Documentation
 
 - `ARCHITECTURE.md` - Detailed architecture
+- `GOOGLE_OAUTH_SETUP.md` - **Google OAuth configuration guide**
 - `MIGRATION_GUIDE.md` - Refactor migration guide
 - `REFACTOR_SUMMARY.md` - Refactoring overview
+- `improvement.md` - Self-assessment and improvement roadmap
 
 ## License
 

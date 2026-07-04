@@ -7,14 +7,20 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "seed": "node seedData.js",
+    "test:auth": "node testAuth.js",
     "legacy": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "mongodb": "^6.3.0",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "bcryptjs": "^2.4.3"
+    "express": "^4.18.2",
+    "express-session": "^1.19.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongodb": "^6.3.0",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
