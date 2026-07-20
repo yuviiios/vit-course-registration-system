@@ -133,11 +133,47 @@ class AuthController {
     // Generate tokens
     const tokens = this.authService.generateTokens(studentWithoutPassword);
 
-    // Redirect to frontend with tokens
+    // Set tokens in secure httpOnly cookies and redirect without exposing in URL
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const redirectUrl = `${frontendUrl}/auth/callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`;
+    const isProduction = process.env.NODE_ENV === 'production';
 
-    res.redirect(redirectUrl);
+    res.cookie('auth_access_token', tokens.accessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      maxAge: 60 * 1000, // 1 minute - short-lived transfer cookie
+      path: '/',
+    });
+    res.cookie('auth_refresh_token', tokens.refreshToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      maxAge: 60 * 1000,
+      path: '/',
+    });
+
+    res.redirect(`${frontendUrl}/auth/callback`);
+  });
+  /**
+   * Exchange OAuth cookies for tokens (called by frontend after redirect)
+   * GET /api/auth/exchange-token
+   */
+  exchangeToken = catchAsync(async (req, res) => {
+    const accessToken = req.cookies?.auth_access_token;
+    const refreshToken = req.cookies?.auth_refresh_token;
+
+    if (!accessToken || !refreshToken) {
+      throw new AppError('No auth tokens found. Please try logging in again.', 401);
+    }
+
+    // Clear the transfer cookies immediately
+    res.clearCookie('auth_access_token');
+    res.clearCookie('auth_refresh_token');
+
+    res.status(200).json({
+      success: true,
+      data: { accessToken, refreshToken },
+    });
   });
 }
 

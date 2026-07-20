@@ -35,6 +35,7 @@ export function parseTimetable(text: string): TimetableCourse[] {
       const typeStr = lines[i].toLowerCase();
       if (typeStr.includes('lab')) courseType = 'Lab';
       else if (typeStr.includes('project')) courseType = 'Project';
+      else if (typeStr.includes('soft skill')) courseType = 'Theory';
       i++;
     }
 
@@ -107,8 +108,12 @@ export function parseTimetable(text: string): TimetableCourse[] {
       i++;
     }
 
-    // Skip attendance/dates/status until "Registered and Approved" (or variants like "by Guide")
+    // Skip attendance/dates/status until "Registered and Approved" or next course code
     while (i < lines.length && !lines[i].startsWith('Registered and Approved')) {
+      if (lines[i].match(/^[A-Z]{3,4}\d{3,4}[A-Z]?\s*-\s*.+/)) {
+        i--;
+        break;
+      }
       i++;
     }
 

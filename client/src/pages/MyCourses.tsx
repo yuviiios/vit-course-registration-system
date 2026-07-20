@@ -184,6 +184,7 @@ export function MyCoursesPage() {
                             className="h-8 w-8 text-destructive hover:text-destructive"
                             onClick={() => dropMutation.mutate((item as any).enrollmentId)}
                             disabled={dropMutation.isPending}
+                            aria-label="Drop course"
                           >
                             {dropMutation.isPending ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
@@ -245,6 +246,7 @@ export function MyCoursesPage() {
                           className="h-8 w-8 text-destructive hover:text-destructive"
                           onClick={() => dropMutation.mutate(enrollment.enrollmentId)}
                           disabled={dropMutation.isPending}
+                          aria-label="Drop course"
                         >
                           {dropMutation.isPending ? (
                             <Loader2 className="h-4 w-4 animate-spin" />

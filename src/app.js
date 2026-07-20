@@ -19,9 +19,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Session configuration (for Google OAuth)
+if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET environment variable is required in production');
+}
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
+    secret: process.env.SESSION_SECRET || 'dev-only-secret-not-for-production',
     resave: false,
     saveUninitialized: false,
     cookie: {

@@ -8,16 +8,12 @@ interface WeeklyViewProps {
   courses: TimetableCourse[];
 }
 
-interface TimeSlot {
-  time: string;
-  courses: Record<string, TimetableCourse | null>;
-}
+const ALL_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const;
 
 export function WeeklyView({ courses }: WeeklyViewProps) {
-  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-
-  const schedule = useMemo(() => {
-    const slots: Record<string, Record<string, TimetableCourse>> = {};
+  const { schedule, days } = useMemo(() => {
+    const slots: Record<string, Record<string, TimetableCourse[]>> = {};
+    const activeDays = new Set<string>();
 
     courses.forEach((course) => {
       const slotTimes = resolveSlot(course.slot);
@@ -26,18 +22,29 @@ export function WeeklyView({ courses }: WeeklyViewProps) {
       slotTimes.forEach(({ day, startTime, endTime }) => {
         const timeKey = `${startTime}-${endTime}`;
         if (!slots[timeKey]) slots[timeKey] = {};
-        slots[timeKey][day] = course;
+        if (!slots[timeKey][day]) slots[timeKey][day] = [];
+        const existing = slots[timeKey][day];
+        if (!existing.some((c) => c.courseCode === course.courseCode)) {
+          existing.push(course);
+        }
+        activeDays.add(day);
       });
     });
 
-    // Convert to sorted array
-    return Object.entries(slots)
+    const days = ALL_DAYS.filter((d) => activeDays.has(d));
+
+    const schedule = Object.entries(slots)
       .map(([time, dayCourses]) => ({
-        time: time.split('-')[0],
+        time,
+        displayTime: time.split('-')[0],
         courses: dayCourses,
       }))
-      .sort((a, b) => a.time.localeCompare(b.time));
+      .sort((a, b) => a.displayTime.localeCompare(b.displayTime));
+
+    return { schedule, days };
   }, [courses]);
+
+  const gridCols = `grid-cols-${days.length + 1}`;
 
   return (
     <div className="space-y-4">
@@ -45,7 +52,7 @@ export function WeeklyView({ courses }: WeeklyViewProps) {
       <div className="overflow-x-auto">
         <div className="min-w-[800px]">
           {/* Header */}
-          <div className="grid grid-cols-6 gap-2 mb-2">
+          <div className="grid gap-2 mb-2" style={{ gridTemplateColumns: `80px repeat(${days.length}, 1fr)` }}>
             <div className="font-semibold text-sm text-muted-foreground">Time</div>
             {days.map((day) => (
               <div key={day} className="font-semibold text-sm text-center">
@@ -57,23 +64,23 @@ export function WeeklyView({ courses }: WeeklyViewProps) {
           {/* Time slots */}
           <div className="space-y-2">
             {schedule.map((slot) => (
-              <div key={slot.time} className="grid grid-cols-6 gap-2">
+              <div key={slot.time} className="grid gap-2" style={{ gridTemplateColumns: `80px repeat(${days.length}, 1fr)` }}>
                 <div className="text-sm font-medium text-muted-foreground py-2">
-                  {slot.time}
+                  {slot.displayTime}
                 </div>
                 {days.map((day) => {
-                  const course = slot.courses[day];
+                  const dayCourses = slot.courses[day] || [];
                   return (
                     <Card
                       key={day}
                       className={`p-2 min-h-[60px] ${
-                        course
-                          ? `${getCourseColor(course.courseCode)} text-white`
+                        dayCourses.length > 0
+                          ? `${getCourseColor(dayCourses[0].courseCode)} text-white`
                           : 'bg-muted/20'
                       }`}
                     >
-                      {course && (
-                        <div className="text-xs space-y-0.5">
+                      {dayCourses.map((course) => (
+                        <div key={course.courseCode} className="text-xs space-y-0.5 mb-1 last:mb-0">
                           <div className="font-semibold truncate">
                             {course.courseCode}
                           </div>
@@ -82,7 +89,7 @@ export function WeeklyView({ courses }: WeeklyViewProps) {
                           </div>
                           <div className="opacity-75">{course.venue}</div>
                         </div>
-                      )}
+                      ))}
                     </Card>
                   );
                 })}
