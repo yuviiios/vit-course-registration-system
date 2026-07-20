@@ -1,156 +1,244 @@
 # VIT Course Registration System
 
-**Production-grade course registration platform** demonstrating modern backend architecture, OAuth security, real-time data handling, and scalable system design.
+A full-stack course registration platform inspired by VIT Vellore, built with React, Node.js, Express, and MongoDB.
 
-Built for VIT Vellore — handles 40K+ students, real-time enrollment conflicts, timetable parsing at scale.
+The project demonstrates secure authentication, timetable parsing, course enrollment workflows, and a scalable backend architecture following the MVC pattern.
 
-## What I Built
+---
 
-### Core Problem Solved
-- **Scalability**: Migrated monolith → layered MVC (testable, independently deployable services)
-- **Security**: JWT tokens + Google OAuth with domain restriction, bcrypt hashing, rate limiting, CORS validation
-- **Reliability**: Conflict detection, atomic enrollment, error recovery, production error handling
-- **User Experience**: Real-time timetable parsing, no seat overbooking, instant feedback
+## Features
 
-### Architecture Highlights
+- 🔐 Google OAuth Authentication (Passport.js)
+- 🔑 JWT-based Authentication
+- 📅 Timetable HTML Import & Parsing
+- ⚡ Automatic Timetable Conflict Detection
+- 📚 Course Registration & Enrollment
+- 👤 Student Profile Management
+- 🛡️ Protected API Routes
+- 🚦 Rate Limiting & Input Validation
+- 📱 Responsive User Interface
 
-**Layered Design** (separation of concerns):
-- Config layer (12-factor app principles)
-- HTTP handlers (controllers)
-- Business logic (reusable services)
-- Route mappings
-- Middleware stack (auth, validation, errors)
-- Utilities (parsers, validators)
+---
 
-**Why This Matters**:
-- Easy to test (services decouple from HTTP)
-- Easy to scale (each layer swappable)
-- Easy to debug (clear data flow)
-- Easy to hire for (standard MVC, new devs onboard fast)
+## Architecture
 
-### Key Technical Decisions
+The backend follows a layered MVC architecture to keep business logic independent from HTTP handlers.
 
-| Feature | Implementation | Why |
-|---------|---|---|
-| **Auth** | JWT + OAuth (Passport.js) | Stateless, scales to multiple servers, industry standard |
-| **Email Gating** | `@vitstudent.ac.in` regex validation | Prevent fake accounts, reduce abuse surface |
-| **Rate Limiting** | express-rate-limit (sliding window) | Protect OAuth endpoints, prevent brute force |
-| **Timetable Parsing** | HTML table extraction + slot conflict detection | Real system data format, prevents double-booking |
-| **DB Driver** | Native MongoDB (no ORM bloat) | Full control, faster queries, lighter memory |
-| **Error Handling** | Centralized AppError + middleware handler | Consistent responses, easier debugging, audit trail |
-| **Session Management** | express-session + cookie-parser | User context per request, refresh token rotation |
+```
+Client (React)
+        │
+        ▼
+ Express Routes
+        │
+        ▼
+ Controllers
+        │
+        ▼
+ Business Services
+        │
+        ▼
+ MongoDB
+```
 
-## Tech Stack
-
-**Intentionally Chosen** (production-grade):
-- **Node.js 18+** — async/await, modern tooling
-- **Express.js** — minimal, battle-tested, ~60K repos
-- **MongoDB** — document model fits course data (nested arrays for slots, grades, etc.)
-- **JWT** — stateless auth, microservice-ready
-- **Passport.js** — OAuth abstraction, 50+ strategies if needed
-- **bcryptjs** — industry standard, OWASP A02 compliance
-- **Vercel** — serverless + edge, $0 scaling on low traffic
-
-## Scale & Performance
-
-- **Concurrent Users**: 5K+ simultaneous (load tested)
-- **Enrollment Throughput**: 500 enrollments/sec (atomic DB transactions)
-- **Timetable Parse**: <500ms for 10K course entries
-- **API Latency**: p95 <100ms (MongoDB indexing on course codes, student IDs)
-
-## What's Production-Ready
-
-✅ Error handling (500s logged, 4xx explained)
-✅ Rate limiting (prevent enrollment spam)
-✅ Input validation (XSS/SQL injection protected)
-✅ CORS (frontend + API separation)
-✅ Environment separation (dev/prod configs)
-✅ Database indexing (query performance)
-✅ Authentication flows (refresh token rotation)
-✅ Seat conflict detection (no overbooking)
-
-## File Structure
+### Project Structure
 
 ```
 src/
-├── config/          # DB, JWT secrets, constants (12-factor)
-├── controllers/     # HTTP request → service call
-├── services/        # Business logic (testable, reusable)
-├── routes/          # Endpoint mappings
-├── middleware/      # Auth, validation, errors
-├── utils/           # Parsers, validators, helpers
-├── models/          # Data schemas (future Mongoose)
-├── app.js           # Express setup
-└── server.js        # Server bootstrap
+├── config/
+├── controllers/
+├── middleware/
+├── routes/
+├── services/
+├── utils/
+├── models/
+├── app.js
+└── server.js
 ```
 
-**Lines of Code**: ~2K backend logic (excludes tests, seed data)
+This separation makes the application easier to maintain, test, and extend.
 
-## API Design (RESTful)
+---
 
-**Auth Endpoints**
-- `POST /api/auth/register` — Email + password
-- `POST /api/auth/login` — JWT tokens returned
-- `GET /api/auth/google` — OAuth initiate
-- `GET /api/auth/me` — Current user (protected)
+# Authentication
 
-**Course Operations**
-- `GET /api/courses` — Paginated catalog
-- `POST /api/enrollments/enroll` — Atomic enroll (conflict check inside)
-- `POST /api/enrollments/:id/drop` — Remove seat
+The application supports two authentication methods:
 
-**Timetable**
-- `POST /api/timetable/upload` — Parse HTML file
-- `GET /api/timetable` — Cached timetable
+- Email & Password
+- Google OAuth (Passport.js)
 
-**Analytics** (for admins)
-- `GET /api/stats/dashboard` — Enrollment trends
-- `GET /api/stats/top-performers` — CGPA leaderboard
+Security measures include:
 
-## Testing & Validation
+- Password hashing using bcrypt
+- JWT authentication
+- Protected routes
+- Domain validation for VIT student accounts
+- Rate limiting
+- CORS configuration
 
-**Test Suite** (`testAuth.js`):
-- Register flow (email validation, domain check)
-- Login → token generation → refresh
-- OAuth callback handling
-- Protected route authentication
-- Error cases (invalid email, weak password, expired token)
+---
 
-**Manual Testing**:
+# Timetable Parser
+
+The application accepts the timetable HTML exported from VTOP and automatically:
+
+- Extracts course information
+- Identifies slots
+- Detects timetable conflicts
+- Generates a structured timetable for the dashboard
+
+---
+
+# Course Registration
+
+Students can
+
+- Browse available courses
+- View seat availability
+- Enroll in courses
+- Drop registered courses
+- Prevent timetable conflicts before enrollment
+
+---
+
+# Technology Stack
+
+## Frontend
+
+- React
+- Vite
+- Tailwind CSS
+- React Router
+
+## Backend
+
+- Node.js
+- Express.js
+- Passport.js
+- JWT
+- Express Session
+
+## Database
+
+- MongoDB Atlas
+
+## Authentication
+
+- Google OAuth 2.0
+- bcryptjs
+
+## Deployment
+
+- Frontend: Vercel
+- Backend: Render
+- Database: MongoDB Atlas
+
+---
+
+# REST API
+
+## Authentication
+
+```
+POST   /api/auth/register
+POST   /api/auth/login
+GET    /api/auth/google
+GET    /api/auth/google/callback
+GET    /api/auth/me
+```
+
+## Courses
+
+```
+GET    /api/courses
+POST   /api/enrollments/enroll
+POST   /api/enrollments/:id/drop
+```
+
+## Timetable
+
+```
+POST   /api/timetable/upload
+GET    /api/timetable
+```
+
+---
+
+# Engineering Decisions
+
+| Decision | Reason |
+|----------|--------|
+| Layered MVC | Better separation of concerns |
+| JWT Authentication | Stateless authentication |
+| Passport.js | Simplifies OAuth integration |
+| MongoDB | Flexible document model for timetable and course data |
+| Centralized Error Handler | Consistent API responses |
+| Middleware-based Validation | Cleaner controllers |
+| Environment Variables | Secure configuration management |
+
+---
+
+# Local Development
+
+Clone the repository
+
+```bash
+git clone <repo-url>
+```
+
+Install dependencies
+
+```bash
+npm install
+```
+
+Start the backend
+
 ```bash
 npm run dev
-node testAuth.js
 ```
 
-## Deployment (Vercel)
+Start the frontend
 
 ```bash
-# Push to GitHub
-git push
-
-# Vercel auto-deploys
-# Environment variables set in Vercel dashboard
+npm run dev
 ```
 
-Single command to production. Zero downtime.
+---
 
-## What I Learned
+# Environment Variables
 
-1. **Security is NOT optional**: OAuth, password hashing, rate limits, email validation — all table stakes
-2. **Architecture wins scale**: Layered design made adding timetable parsing + analytics trivial
-3. **Simple tech stacks work**: Express + Mongo + JWT > framework complexity
-4. **Error handling is 40% of code**: Proper AppError, middleware, logging saves debugging hours
+```env
+MONGODB_URI=
+JWT_SECRET=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+FRONTEND_URL=
+SESSION_SECRET=
+```
+
+---
+
+# Lessons Learned
+
+Building this project helped strengthen my understanding of:
+
+- Designing RESTful APIs
+- OAuth authentication
+- JWT-based authorization
+- Backend architecture (MVC)
+- Middleware design
+- MongoDB schema design
+- Secure authentication practices
+- React state management
+- Deployment using Vercel & Render
+
+---
+
+# Author
+
+**Yuvios**
+
 
 ## License
 
 MIT
-
-## Author
-
-**yuviios** — Full-stack engineer focused on scalable systems, security hardening, and developer experience.
-
----
-
-**GitHub**: [link to repo]
-**Live Demo**: [Vercel URL]
-**Contact**: [email/LinkedIn]
