@@ -136,12 +136,11 @@ export function UploadTimetablePage() {
                   <CardDescription>Follow these simple steps</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Placeholder for GIF - you need to add the actual GIF */}
-                  <div className="rounded-lg overflow-hidden shadow-md bg-muted aspect-video flex items-center justify-center">
-                    <p className="text-muted-foreground">
-                      Tutorial GIF placeholder - Add your GIF here
-                    </p>
-                  </div>
+                  <img
+                    src="/tutorials/copying_timetable.gif"
+                    alt="How to copy timetable from VTOP"
+                    className="rounded-lg overflow-hidden shadow-md w-full"
+                  />
 
                   <ol className="space-y-2 list-decimal list-inside text-sm">
                     <li>Go to the Time Table tab on VTOP.</li>
