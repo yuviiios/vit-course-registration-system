@@ -5,13 +5,17 @@ import { enrollmentsApi } from '@/api/enrollments';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Users, GraduationCap, TrendingUp } from 'lucide-react';
+import { BookOpen, Users, GraduationCap, TrendingUp, Calendar, Upload, Award, Target } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useTimetableData, getActiveCourses } from '@/hooks/useTimetableData';
+import { EditCredits } from '@/components/dashboard/EditCredits';
+import { EditCGPA } from '@/components/dashboard/EditCGPA';
 
 export function DashboardPage() {
   const { user } = useAuth();
+  const { courses: vtopCourses, stats: vtopStats, hasData: hasVtopData } = useTimetableData();
 
   const { data: statsData, isLoading: statsLoading } = useQuery({
     queryKey: ['dashboard-stats'],
@@ -31,34 +35,44 @@ export function DashboardPage() {
     enabled: !!user?.studentId,
   });
 
+  const totalCreditsRequired = user?.totalCreditsRequired ?? 162;
+  const earnedCredits = user?.earnedCredits ?? 0;
+  const currentCgpa = user?.cgpa ?? 0;
+
   const statCards = [
     {
-      title: 'Total Courses',
-      value: statsData?.totalCourses ?? 0,
-      icon: BookOpen,
+      title: 'Total Credits Required',
+      value: totalCreditsRequired,
+      icon: Target,
       color: 'text-primary',
       bg: 'bg-primary/10',
+      editType: null,
     },
     {
-      title: 'Total Students',
-      value: statsData?.totalStudents ?? 0,
-      icon: Users,
+      title: 'Earned Credits',
+      value: earnedCredits.toFixed(1),
+      icon: Award,
       color: 'text-success',
       bg: 'bg-success/10',
+      editType: 'credits',
+      currentValue: earnedCredits,
     },
     {
-      title: 'Enrollments',
-      value: statsData?.totalEnrollments ?? 0,
-      icon: GraduationCap,
+      title: 'Current CGPA',
+      value: currentCgpa.toFixed(2),
+      icon: TrendingUp,
       color: 'text-warning',
       bg: 'bg-warning/10',
+      editType: 'cgpa',
+      currentValue: currentCgpa,
     },
     {
-      title: 'My CGPA',
-      value: enrollmentsData?.cgpa?.toFixed(2) ?? '—',
-      icon: TrendingUp,
+      title: 'Remaining Credits',
+      value: Math.max(0, totalCreditsRequired - earnedCredits),
+      icon: GraduationCap,
       color: 'text-destructive',
       bg: 'bg-destructive/10',
+      editType: null,
     },
   ];
 
@@ -95,8 +109,16 @@ export function DashboardPage() {
                     </div>
                   ) : (
                     <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-muted-foreground">{stat.title}</p>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm text-muted-foreground">{stat.title}</p>
+                          {stat.editType === 'credits' && (
+                            <EditCredits currentValue={stat.currentValue!} />
+                          )}
+                          {stat.editType === 'cgpa' && (
+                            <EditCGPA currentValue={stat.currentValue!} />
+                          )}
+                        </div>
                         <p className="text-2xl font-bold mt-1">{stat.value}</p>
                       </div>
                       <div className={`h-10 w-10 rounded-lg ${stat.bg} flex items-center justify-center`}>
@@ -109,6 +131,47 @@ export function DashboardPage() {
             </motion.div>
           ))}
         </div>
+
+        {hasVtopData && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="mb-6"
+          >
+            <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-lg">VTOP Timetable Imported</CardTitle>
+                </div>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/upload-timetable">View Schedule</Link>
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <p className="text-2xl font-bold text-primary">{vtopStats?.totalCourses}</p>
+                    <p className="text-xs text-muted-foreground">Total Courses</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-blue-600">{vtopStats?.theoryCourses}</p>
+                    <p className="text-xs text-muted-foreground">Theory</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-purple-600">{vtopStats?.labCourses}</p>
+                    <p className="text-xs text-muted-foreground">Labs</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-green-600">{vtopStats?.totalCredits}</p>
+                    <p className="text-xs text-muted-foreground">Credits</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
@@ -181,6 +244,14 @@ export function DashboardPage() {
                   View Profile
                 </Link>
               </Button>
+              {!hasVtopData && (
+                <Button variant="outline" className="w-full justify-start" asChild>
+                  <Link to="/upload-timetable">
+                    <Upload className="mr-2 h-4 w-4" />
+                    Import VTOP Timetable
+                  </Link>
+                </Button>
+              )}
             </CardContent>
           </Card>
         </div>

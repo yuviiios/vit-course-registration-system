@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { motion } from 'framer-motion';
+import { EditProfile } from '@/components/profile/EditProfile';
 
 export function ProfilePage() {
   const { user } = useAuth();
@@ -32,6 +33,9 @@ export function ProfilePage() {
       >
         <Card>
           <CardHeader className="text-center pb-2">
+            <div className="flex justify-end mb-2">
+              {user && <EditProfile student={user} />}
+            </div>
             <div className="flex justify-center mb-4">
               <Avatar className="h-20 w-20">
                 <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
