@@ -14,6 +14,7 @@ const MyCoursesPage = lazy(() => import('@/pages/MyCourses').then((m) => ({ defa
 const ProfilePage = lazy(() => import('@/pages/Profile').then((m) => ({ default: m.ProfilePage })));
 const NotFoundPage = lazy(() => import('@/pages/NotFound').then((m) => ({ default: m.NotFoundPage })));
 const AuthCallbackPage = lazy(() => import('@/pages/AuthCallback').then((m) => ({ default: m.AuthCallbackPage })));
+const UploadTimetablePage = lazy(() => import('@/pages/UploadTimetable').then((m) => ({ default: m.UploadTimetablePage })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -81,6 +82,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <ProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/upload-timetable"
+                  element={
+                    <ProtectedRoute>
+                      <UploadTimetablePage />
                     </ProtectedRoute>
                   }
                 />

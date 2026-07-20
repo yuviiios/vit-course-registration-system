@@ -8,6 +8,9 @@ export interface Student {
   semester?: number;
   role?: string;
   googleId?: string;
+  totalCreditsRequired?: number;
+  earnedCredits?: number;
+  cgpa?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -105,4 +108,32 @@ export interface ApiResponse<T> {
   success: boolean;
   message?: string;
   data?: T;
+}
+
+export interface TimetableCourse {
+  courseCode: string;
+  subjectName: string;
+  courseType: 'Theory' | 'Lab' | 'Project';
+  credits: number;
+  category: string;
+  slot: string;
+  venue: string;
+  faculty: string;
+  school: string;
+  status: string;
+}
+
+export interface TimetableStats {
+  totalCourses: number;
+  theoryCourses: number;
+  labCourses: number;
+  projectCourses: number;
+  totalCredits: number;
+}
+
+export interface WeeklySlot {
+  day: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday';
+  startTime: string;
+  endTime: string;
+  course: TimetableCourse;
 }

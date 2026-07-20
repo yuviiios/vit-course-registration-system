@@ -158,11 +158,11 @@ class AuthService {
    * Update student profile
    */
   async updateProfile(studentId, updates) {
-    const allowedUpdates = ['name', 'phone', 'hostelBlock', 'branch', 'semester'];
+    const allowedUpdates = ['name', 'phone', 'hostelBlock', 'branch', 'semester', 'earnedCredits', 'cgpa', 'totalCreditsRequired'];
     const filteredUpdates = {};
 
     for (const key of allowedUpdates) {
-      if (updates[key] !== undefined) {
+      if (updates[key] !== undefined && updates[key] !== null) {
         filteredUpdates[key] = updates[key];
       }
     }

@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { GraduationCap, LogOut, User, BookOpen, LayoutDashboard } from 'lucide-react';
+import { GraduationCap, LogOut, User, BookOpen, LayoutDashboard, Upload } from 'lucide-react';
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -62,6 +62,12 @@ export function Navbar() {
               >
                 My Courses
               </Link>
+              <Link
+                to="/upload-timetable"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Upload Timetable
+              </Link>
             </>
           )}
         </nav>
@@ -93,6 +99,10 @@ export function Navbar() {
                 <DropdownMenuItem onClick={() => navigate('/my-courses')}>
                   <BookOpen className="mr-2 h-4 w-4" />
                   My Courses
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/upload-timetable')}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload Timetable
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate('/profile')}>
                   <User className="mr-2 h-4 w-4" />
