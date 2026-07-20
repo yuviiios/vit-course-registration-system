@@ -8,6 +8,7 @@ yarn.lock
 .env
 .env.local
 .env.*
+!.env.*.example
 
 # Build
 dist/
@@ -30,6 +31,14 @@ Thumbs.db
 
 # Coverage
 coverage/
+
+# Docs (internal dev notes)
+docs/
+
+# Dead test files
+test-*.mjs
+test-*.js
+test-*.txt
 
 # Misc
 .DS_Store
